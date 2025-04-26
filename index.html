@@ -162,8 +162,6 @@
         flap.volume = 0.6;
         var point = new Audio("point.mp3");
         point.volume = 0.8;
-        var hit = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3");
-        hit.volume = 0.5;
 
         const musicToggle = document.getElementById('musicToggle');
         let musicMuted = false;
@@ -517,11 +515,6 @@
         // Game over
         function gameOver() {
             gameRunning = false;
-            
-            // Play hit sound and create explosion particles
-            hit.currentTime = 0;
-            hit.play();
-            createParticles(bird.x, bird.y, '#FF0000', 30);
             
             // Update high score
             if (score > highScore) {
