@@ -398,9 +398,8 @@
                     score++;
                     scoreDisplay.textContent = score;
                     createParticles(bird.x, bird.y, '#FFD700', 10);
-                    
+        
                     // Play point sound
-                    point.currentTime = 0;
                     point.play();
                 }
                 
@@ -544,6 +543,7 @@
         canvas.addEventListener('click', () => {
             if (gameRunning) {
                 bird.jump();
+                flap.play();
             }
         });
 
@@ -552,6 +552,7 @@
             e.preventDefault();
             if (gameRunning) {
                 bird.jump();
+                flap.play();
             }
         }, { passive: false });
         
@@ -559,6 +560,7 @@
         document.addEventListener('keydown', (e) => {
             if ((e.code === 'Space' || e.key === 'ArrowUp') && gameRunning) {
                 bird.jump();
+                flap.play();
             }
         });
         
