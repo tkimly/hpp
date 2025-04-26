@@ -548,28 +548,6 @@
         }
         }
 
-        // Touch Event
-        let lastTouchY = 0;
-        const touchDeadZone = 10; // pixels to ignore accidental touches
-
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touchY = e.touches[0].clientY;
-            
-            // Only register as jump if touch moves upward (more intuitive)
-            if (lastTouchY - touchY > touchDeadZone && gameRunning) {
-                bird.velocity = bird.jump;
-                flap.currentTime = 0;
-                flap.play();
-            }
-            lastTouchY = touchY;
-        }, { passive: false });
-
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            lastTouchY = e.touches[0].clientY;
-        }, { passive: false });
-
         // Detect mobile devices
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
