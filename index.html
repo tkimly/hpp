@@ -352,10 +352,18 @@
         // Update pipes
         function updatePipes(timestamp) {
             // Add new pipes
-           let pipeSpeed = 3 + Math.floor(score / 5) * 0.5; // 👈 recalculate every time
-
-            for (let i = 0; i < pipes.length; i++) {
-            pipes[i].x -= pipeSpeed;
+            if (pipeTimer <= 0) {
+                const topHeight = 100 + Math.random() * (canvas.height / 2 - 200);
+                pipes.push({
+                    x: canvas.width,
+                    topHeight: topHeight,
+                    bottomY: topHeight + pipeGap,
+                    passed: false
+                });
+                pipeTimer = pipeInterval;
+            } else {
+                pipeTimer -= 16; // Assuming 60fps
+            }
             
             // Move pipes
             pipes = pipes.filter(pipe => {
