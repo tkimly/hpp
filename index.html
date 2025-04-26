@@ -591,11 +591,9 @@
         initAudio();
 
         // Add this touch handler for immediate response
-        canvas.addEventListener('touchend', (e) => {
+        document.body.addEventListener('touchend', (e) => {
             e.preventDefault();
-            if (!gameRunning && e.target === canvas) {
-                handleJump();
-            }
+            handleJump();
         }, { passive: false });
 
     </script>
