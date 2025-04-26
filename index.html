@@ -205,8 +205,8 @@
         // Pipes
         let pipes = [];
         const pipeWidth = 80;
-        const pipeGap = 200;
-        const pipeSpeed = 3 + Math.floor(score / 5) * 0.5;
+        let pipeGap = 200;
+        let pipeSpeed = 3;
         let pipeTimer = 0;
         const pipeInterval = 1500; // milliseconds
         
@@ -352,18 +352,10 @@
         // Update pipes
         function updatePipes(timestamp) {
             // Add new pipes
-            if (pipeTimer <= 0) {
-                const topHeight = 100 + Math.random() * (canvas.height / 2 - 200);
-                pipes.push({
-                    x: canvas.width,
-                    topHeight: topHeight,
-                    bottomY: topHeight + pipeGap,
-                    passed: false
-                });
-                pipeTimer = pipeInterval;
-            } else {
-                pipeTimer -= 16; // Assuming 60fps
-            }
+           let pipeSpeed = 3 + Math.floor(score / 5) * 0.5; // 👈 recalculate every time
+
+            for (let i = 0; i < pipes.length; i++) {
+            pipes[i].x -= pipeSpeed;
             
             // Move pipes
             pipes = pipes.filter(pipe => {
@@ -567,7 +559,7 @@
                     gameRunning = false;
                     music.pause();
                 }
-            } else if (!gameOverScreen.style.display === 'flex') {
+            } else if (!gameOverScreen.style.display !== 'flex') {
                 gameRunning = true;
                 music.play();
                 requestAnimationFrame(gameLoop);
