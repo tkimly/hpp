@@ -99,6 +99,12 @@
             line-height: 1.6;
             color: #FFD700;
         }
+
+        .medal {
+            font-size: 24px;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -142,173 +148,277 @@
         let gameRunning = false;
         let score = 0;
         let highScore = localStorage.getItem('happyBirdHighScore') || 0;
+        let difficulty = 1;
+        let particles = [];
+        let resizeTimeout;
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const hitboxScale = isMobileDevice ? 1.3 : 1;
 
         // SFX
-        var music = new Audio("bgm.mp3");
+        var music = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-game-show-suspense-waiting-668.mp3");
         music.loop = true;
         music.volume = 0.7;
-        var flap = new Audio("flap.wav");
+        var flap = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3");
         flap.volume = 0.6;
-        const musicToggle = document.getElementById('musicToggle');
+        var point = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3");
+        point.volume = 0.4;
+        var hit = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3");
+        hit.volume = 0.5;
 
+        const musicToggle = document.getElementById('musicToggle');
         let musicMuted = false;
 
+        // Preload sounds
+        function preloadSounds() {
+            [music, flap, point, hit].forEach(sound => {
+                sound.load();
+            });
+        }
+        preloadSounds();
+
         musicToggle.addEventListener('click', () => {
-        musicMuted = !musicMuted;   
-        music.muted = musicMuted;
-        musicToggle.textContent = musicMuted ? '🔇' : '🔊';
+            musicMuted = !musicMuted;   
+            music.muted = musicMuted;
+            musicToggle.textContent = musicMuted ? '🔇' : '🔊';
         });
         
-        // Bird properties
-        const bird = {
-            x: 100,
-            y: canvas.height / 2,
-            width: 40,
-            height: 30,
-            velocity: 0,
-            gravity: 0.25,
-            jump: -8,
-            color: '#FFD700'
-        };
-        
-        // Pipes
-        let pipes = [];
-        const pipeWidth = 80;
-        const pipeGap = 200;
-        const pipeSpeed = 3;
-        let pipeTimer = 0;
-        const pipeInterval = 1500; // milliseconds
-        
-        // Clouds
-        let clouds = [];
-        const cloudCount = 5;
-        
-        // Initialize clouds
-        function initClouds() {
-            clouds = [];
-            for (let i = 0; i < cloudCount; i++) {
-                clouds.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height * 0.5,
-                    width: 100 + Math.random() * 100,
-                    height: 60 + Math.random() * 40,
-                    speed: 0.5 + Math.random() * 1
-                });
+        // Bird class
+        class Bird {
+            constructor() {
+                this.x = 100;
+                this.y = canvas.height / 2;
+                this.width = 40;
+                this.height = 30;
+                this.velocity = 0;
+                this.gravity = 0.25;
+                this.jumpForce = -8;
+                this.color = '#FFD700';
+            }
+
+            update() {
+                this.velocity += this.gravity;
+                this.y += this.velocity;
+            }
+
+            jump() {
+                this.velocity = this.jumpForce;
+                flap.currentTime = 0;
+                flap.play();
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                
+                // Draw bird body
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.width / 2, this.height / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw bird eye
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(this.x + 10, this.y - 5, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(this.x + 10, this.y - 5, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw bird beak
+                ctx.fillStyle = '#FF8C00';
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width / 2, this.y);
+                ctx.lineTo(this.x + this.width / 2 + 20, this.y - 5);
+                ctx.lineTo(this.x + this.width / 2 + 20, this.y + 5);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw bird wings (flapping animation)
+                const wingY = this.y + Math.sin(Date.now() / 100) * 5;
+                ctx.fillStyle = '#FFC800';
+                ctx.beginPath();
+                ctx.ellipse(this.x - 10, wingY, 15, 10, Math.PI / 4, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
-        
-        // Draw bird
-        function drawBird() {
-            ctx.fillStyle = bird.color;
-            
-            // Draw bird body
-            ctx.beginPath();
-            ctx.ellipse(bird.x, bird.y, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw bird eye
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(bird.x + 10, bird.y - 5, 5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = 'black';
-            ctx.beginPath();
-            ctx.arc(bird.x + 10, bird.y - 5, 2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw bird beak
-            ctx.fillStyle = '#FF8C00';
-            ctx.beginPath();
-            ctx.moveTo(bird.x + bird.width / 2, bird.y);
-            ctx.lineTo(bird.x + bird.width / 2 + 20, bird.y - 5);
-            ctx.lineTo(bird.x + bird.width / 2 + 20, bird.y + 5);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Draw bird wings (flapping animation)
-            const wingY = bird.y + Math.sin(Date.now() / 100) * 5;
-            ctx.fillStyle = '#FFC800';
-            ctx.beginPath();
-            ctx.ellipse(bird.x - 10, wingY, 15, 10, Math.PI / 4, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // Draw pipes
-        function drawPipes() {
-            pipes.forEach(pipe => {
-                ctx.fillStyle = '#2ECC71';
-                
+
+        // Pipe class
+        class Pipe {
+            constructor() {
+                this.x = canvas.width;
+                this.width = 80;
+                this.topHeight = 100 + Math.random() * (canvas.height / 2 - 200);
+                this.bottomY = this.topHeight + pipeGap;
+                this.passed = false;
+                this.color = '#2ECC71';
+                this.edgeColor = '#27AE60';
+            }
+
+            update() {
+                this.x -= pipeSpeed;
+            }
+
+            draw() {
                 // Top pipe
-                ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, 0, this.width, this.topHeight);
                 
                 // Bottom pipe
-                ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
+                ctx.fillRect(this.x, this.bottomY, this.width, canvas.height - this.bottomY);
                 
                 // Pipe edges
-                ctx.fillStyle = '#27AE60';
-                ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
-                ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
-            });
+                ctx.fillStyle = this.edgeColor;
+                ctx.fillRect(this.x - 5, this.topHeight - 20, this.width + 10, 20);
+                ctx.fillRect(this.x - 5, this.bottomY, this.width + 10, 20);
+            }
         }
-        
-        // Draw clouds
-        function drawClouds() {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            clouds.forEach(cloud => {
-                // Draw cloud with multiple circles for a fluffy effect
+
+        // Cloud class
+        class Cloud {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height * 0.5;
+                this.width = 100 + Math.random() * 100;
+                this.height = 60 + Math.random() * 40;
+                this.speed = 0.5 + Math.random() * 1;
+                this.color = 'rgba(255, 255, 255, 0.8)';
+            }
+
+            update() {
+                this.x -= this.speed;
+                if (this.x + this.width < 0) {
+                    this.x = canvas.width;
+                    this.y = Math.random() * canvas.height * 0.5;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
                 ctx.beginPath();
-                ctx.arc(cloud.x, cloud.y, cloud.height / 2, 0, Math.PI * 2);
-                ctx.arc(cloud.x + cloud.width / 3, cloud.y - cloud.height / 4, cloud.height / 2.5, 0, Math.PI * 2);
-                ctx.arc(cloud.x + cloud.width / 1.5, cloud.y, cloud.height / 2.5, 0, Math.PI * 2);
-                ctx.arc(cloud.x + cloud.width / 3, cloud.y + cloud.height / 4, cloud.height / 3, 0, Math.PI * 2);
+                ctx.arc(this.x, this.y, this.height / 2, 0, Math.PI * 2);
+                ctx.arc(this.x + this.width / 3, this.y - this.height / 4, this.height / 2.5, 0, Math.PI * 2);
+                ctx.arc(this.x + this.width / 1.5, this.y, this.height / 2.5, 0, Math.PI * 2);
+                ctx.arc(this.x + this.width / 3, this.y + this.height / 4, this.height / 3, 0, Math.PI * 2);
                 ctx.fill();
-            });
+            }
         }
-        
+
+        // Particle class
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 1;
+                this.color = color;
+                this.speedX = Math.random() * 6 - 3;
+                this.speedY = Math.random() * 6 - 3;
+                this.life = 30 + Math.random() * 20;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life--;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life / 50;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Game objects
+        const bird = new Bird();
+        let pipes = [];
+        let clouds = [];
+        const cloudCount = 5;
+        let pipeWidth = 80;
+        let pipeGap = 200;
+        let pipeSpeed = 3;
+        let pipeTimer = 0;
+        const pipeInterval = 1500;
+
+        // Initialize game elements
+        function initGameElements() {
+            // Create clouds
+            clouds = [];
+            for (let i = 0; i < cloudCount; i++) {
+                clouds.push(new Cloud());
+            }
+
+            // Reset pipes
+            pipes = [];
+            pipeTimer = pipeInterval;
+        }
+
+        // Create particles
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // Get medal based on score
+        function getMedal(score) {
+            if (score >= 20) return '🥇';
+            if (score >= 15) return '🥈';
+            if (score >= 10) return '🥉';
+            return '';
+        }
+
         // Update pipes
         function updatePipes(timestamp) {
+            // Increase difficulty every 5 points
+            if (score > 0 && score % 5 === 0) {
+                difficulty = 1 + Math.floor(score / 5) * 0.2;
+                pipeSpeed = 3 * difficulty;
+                pipeGap = Math.max(150, 200 - (difficulty * 10));
+            }
+            
             // Add new pipes
             if (pipeTimer <= 0) {
-                const topHeight = 100 + Math.random() * (canvas.height / 2 - 200);
-                pipes.push({
-                    x: canvas.width,
-                    topHeight: topHeight,
-                    bottomY: topHeight + pipeGap,
-                    passed: false
-                });
+                pipes.push(new Pipe());
                 pipeTimer = pipeInterval;
             } else {
                 pipeTimer -= 16; // Assuming 60fps
             }
             
-            // Move pipes
+            // Move pipes and check scoring
             pipes = pipes.filter(pipe => {
-                pipe.x -= pipeSpeed;
+                pipe.update();
                 
                 // Check if bird passed the pipe
-                if (!pipe.passed && pipe.x + pipeWidth < bird.x) {
+                if (!pipe.passed && pipe.x + pipe.width < bird.x) {
                     pipe.passed = true;
                     score++;
                     scoreDisplay.textContent = score;
+                    createParticles(bird.x, bird.y, '#FFD700', 10);
                     
                     // Play point sound
-                    const pointSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...');
-                    pointSound.volume = 0.2;
-                    pointSound.play().catch(e => {});
+                    point.currentTime = 0;
+                    point.play();
                 }
                 
-                return pipe.x + pipeWidth > 0;
+                return pipe.x + pipe.width > 0;
             });
         }
         
         // Update clouds
         function updateClouds() {
-            clouds.forEach(cloud => {
-                cloud.x -= cloud.speed;
-                if (cloud.x + cloud.width < 0) {
-                    cloud.x = canvas.width;
-                    cloud.y = Math.random() * canvas.height * 0.5;
+            clouds.forEach(cloud => cloud.update());
+        }
+
+        // Update particles
+        function updateParticles() {
+            particles.forEach((particle, index) => {
+                particle.update();
+                if (particle.life <= 0) {
+                    particles.splice(index, 1);
                 }
             });
         }
@@ -325,13 +435,16 @@
                 return true;
             }
             
-            // Pipe collisions
+            // Pipe collisions with scaled hitbox
+            const birdWidthScaled = bird.width * hitboxScale;
+            const birdHeightScaled = bird.height * hitboxScale;
+            
             for (const pipe of pipes) {
                 if (
-                    bird.x + bird.width / 2 > pipe.x &&
-                    bird.x - bird.width / 2 < pipe.x + pipeWidth &&
-                    (bird.y - bird.height / 2 < pipe.topHeight ||
-                     bird.y + bird.height / 2 > pipe.bottomY)
+                    bird.x + birdWidthScaled / 2 > pipe.x &&
+                    bird.x - birdWidthScaled / 2 < pipe.x + pipe.width &&
+                    (bird.y - birdHeightScaled / 2 < pipe.topHeight ||
+                     bird.y + birdHeightScaled / 2 > pipe.bottomY)
                 ) {
                     return true;
                 }
@@ -353,17 +466,18 @@
             
             // Update and draw game elements
             updateClouds();
-            drawClouds();
+            clouds.forEach(cloud => cloud.draw());
             
             updatePipes(timestamp);
-            drawPipes();
+            pipes.forEach(pipe => pipe.draw());
             
-            // Update bird
-            bird.velocity += bird.gravity;
-            bird.y += bird.velocity;
+            // Update and draw particles
+            updateParticles();
+            particles.forEach(particle => particle.draw());
             
-            // Draw bird
-            drawBird();
+            // Update and draw bird
+            bird.update();
+            bird.draw();
             
             // Check collisions
             if (checkCollisions()) {
@@ -379,30 +493,36 @@
         function startGame() {
             // Reset game state
             score = 0;
+            difficulty = 1;
             scoreDisplay.textContent = score;
-            pipes = [];
-            pipeTimer = pipeInterval;
+            particles = [];
             
             // Reset bird
             bird.y = canvas.height / 2;
             bird.velocity = 0;
             
-            // Initialize clouds
-            initClouds();
+            // Initialize game elements
+            initGameElements();
             
-            // Hide start screen
+            // Hide screens
             startScreen.style.display = 'none';
             gameOverScreen.style.display = 'none';
             
             // Start game
             gameRunning = true;
             requestAnimationFrame(gameLoop);
-            music.play()
+            music.currentTime = 0;
+            music.play();
         }
         
         // Game over
         function gameOver() {
             gameRunning = false;
+            
+            // Play hit sound and create explosion particles
+            hit.currentTime = 0;
+            hit.play();
+            createParticles(bird.x, bird.y, '#FF0000', 30);
             
             // Update high score
             if (score > highScore) {
@@ -410,8 +530,9 @@
                 localStorage.setItem('happyBirdHighScore', highScore);
             }
             
-            // Show game over screen
-            finalScoreDisplay.textContent = `Score: ${score} | High Score: ${highScore}`;
+            // Show game over screen with medal
+            const medal = getMedal(score);
+            finalScoreDisplay.innerHTML = `Score: ${score} <span class="medal">${medal}</span><br>High Score: ${highScore}`;
             gameOverScreen.style.display = 'flex';
         }
         
@@ -422,49 +543,38 @@
         // Jump on click/tap
         canvas.addEventListener('click', () => {
             if (gameRunning) {
-                bird.velocity = bird.jump;
-                
-                // Play flap sound
-                flap.play();
+                bird.jump();
             }
         });
+
+        // Touch controls for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameRunning) {
+                bird.jump();
+            }
+        }, { passive: false });
         
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
             if ((e.code === 'Space' || e.key === 'ArrowUp') && gameRunning) {
-                bird.velocity = bird.jump;
-                
-                // Play flap sound
-                flap.play();
+                bird.jump();
             }
         });
         
-        // Handle window resize
+        // Handle window resize with debounce
         window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            // Reset bird position
-            if (gameRunning) {
-                bird.y = canvas.height / 2;
-            }
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                // Reset bird position
+                if (gameRunning) {
+                    bird.y = canvas.height / 2;
+                }
+            }, 100);
         });
-
-        // Add touch controls
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    if (gameRunning) {
-        bird.velocity = bird.jump;
-        flap.play();
-    }
-}, { passive: false });
-
-// Adjust hitboxes for mobile
-const hitboxScale = isMobile() ? 1.3 : 1;
-function isMobile() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
-
     </script>
 </body>
 </html>
