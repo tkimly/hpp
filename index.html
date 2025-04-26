@@ -205,8 +205,8 @@
         // Pipes
         let pipes = [];
         const pipeWidth = 80;
-        let pipeGap = 200;
-        let pipeSpeed = 3;
+        const pipeGap = 200;
+        const pipeSpeed = 3 + Math.floor(score / 5) * 0.5;
         let pipeTimer = 0;
         const pipeInterval = 1500; // milliseconds
         
@@ -567,7 +567,7 @@
                     gameRunning = false;
                     music.pause();
                 }
-            } else if (!gameOverScreen.style.display !== 'flex') {
+            } else if (!gameOverScreen.style.display === 'flex') {
                 gameRunning = true;
                 music.play();
                 requestAnimationFrame(gameLoop);
