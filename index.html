@@ -551,45 +551,6 @@
         // Detect mobile devices
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // Adjust game parameters for mobile
-        if (isMobile) {
-            bird.width = 50; // Larger hitbox
-            bird.height = 35;
-            pipeGap = 220; // More space between pipes
-            pipeSpeed = 2.5; // Slightly slower
-            bird.gravity = 0.2; // Gentler physics
-        }
-
-        // Add visibility change handler
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                if (gameRunning) {
-                    gameRunning = false;
-                    music.pause();
-                }
-            } else if (!gameOverScreen.style.display === 'flex') {
-                gameRunning = true;
-                music.play();
-                requestAnimationFrame(gameLoop);
-            }
-        });
-
-        // Optimize audio for mobile
-        function initAudio() {
-            music.preload = 'auto';
-            flap.preload = 'auto';
-            music.load();
-            flap.load();
-            
-            // iOS requires this to enable audio
-            document.addEventListener('touchstart', () => {
-                if (music.paused) {
-                    music.play().then(() => music.pause());
-                }
-            }, { once: true });
-        }
-        initAudio();
-
         // Add this touch handler for immediate response
         document.body.addEventListener('touchstart', (e) => {
             handleJump();
