@@ -1,531 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy Bird</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            font-family: 'Press Start 2P', cursive;
-            background-color: #87CEEB;
-            touch-action: manipulation;
-        }
-        
-        #gameCanvas {
-            display: block;
-            background-color: #87CEEB;
-        }
-        
-        #startScreen, #gameOverScreen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            z-index: 10;
-        }
-        
-        #gameOverScreen {
-            display: none;
-        }
-        
-        .btn {
-            background-color: #FFD700;
-            color: #8B4513;
-            border: none;
-            padding: 15px 30px;
-            margin-top: 20px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 10px;
-            box-shadow: 0 4px 0 #8B4513;
-            transition: all 0.1s;
-        }
-        
-        .btn:hover {
-            background-color: #FFC800;
-        }
-        
-        .btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 1px 0 #8B4513;
-        }
-        
-        .title {
-            font-size: 48px;
-            color: #FFD700;
-            text-shadow: 4px 4px 0 #8B4513;
-            margin-bottom: 30px;
-            animation: bounce 1s infinite alternate;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Bird</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Preload sounds for faster response -->
+  <link rel="preload" as="audio" href="bgm.mp3">
+  <link rel="preload" as="audio" href="flap.wav">
 
-        .auther {
-            text-shadow: 4px 4px 0 #8B4513;
-        }
-        
-        @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-10px); }
-        }
-        
-        .score {
-            font-size: 24px;
-            color: white;
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 5;
-            text-shadow: 2px 2px 0 black;
-        }
-        
-        .instructions {
-            font-size: 14px;
-            margin-top: 20px;
-            text-align: center;
-            line-height: 1.6;
-            color: #FFD700;
-        }
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-        @media (max-width: 768px) {
-        .title {
-            font-size: 32px;
-            text-shadow: 3px 3px 0 #8B4513;
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            font-size: 14px;
-        }
-        
-        .instructions {
-            font-size: 12px;
-            padding: 0 20px;
-        }
-        
-        #musicToggle {
-            padding: 8px;
-            font-size: 24px;
-        }
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Press Start 2P', cursive;
+      background-color: #87CEEB;
+      touch-action: manipulation;
     }
 
-    /* Prevent touch highlighting */
+    #gameCanvas {
+      display: block;
+      background-color: #87CEEB;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #startScreen, #gameOverScreen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(0,0,0,0.5);
+      color: white;
+      z-index: 10;
+    }
+
+    #gameOverScreen { display: none; }
+
+    .btn {
+      background-color: #FFD700;
+      color: #8B4513;
+      border: none;
+      padding: 15px 30px;
+      margin-top: 20px;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      box-shadow: 0 4px 0 #8B4513;
+      transition: all 0.1s;
+    }
+
+    .btn:hover { background-color: #FFC800; }
+    .btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #8B4513;
+    }
+
+    .title {
+      font-size: 48px;
+      color: #FFD700;
+      text-shadow: 4px 4px 0 #8B4513;
+      margin-bottom: 30px;
+      animation: bounce 1s infinite alternate;
+    }
+
+    .author {
+      text-shadow: 4px 4px 0 #8B4513;
+    }
+
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+
+    .score {
+      font-size: 24px;
+      color: white;
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      text-shadow: 2px 2px 0 black;
+    }
+
+    .instructions {
+      font-size: 14px;
+      margin-top: 20px;
+      text-align: center;
+      line-height: 1.6;
+      color: #FFD700;
+    }
+
+    @media (max-width: 768px) {
+      .title { font-size: 32px; text-shadow: 3px 3px 0 #8B4513; }
+      .btn { padding: 12px 24px; font-size: 14px; }
+      .instructions { font-size: 12px; padding: 0 20px; }
+    }
+
+    /* Prevent touch highlight */
     * {
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
     }
-    </style>
+  </style>
 </head>
-<body>
-    <button id="musicToggle" class="btn absolute top-4 right-4 z-20 text-4xl">🔊</button>
-    <div class="score" id="scoreDisplay">0</div>
-    
-    <div id="startScreen">
-        <h1 class="title">HAPPY BIRD</h1>
-        <h2 class="auther">made by pu kim</h2>
-        <button class="btn" id="startBtn">START GAME</button>
-        <div class="instructions">
-            Tap or click to make the bird fly<br>
-            Avoid the pipes and try to get the highest score!
-        </div>
-    </div>
-    
-    <div id="gameOverScreen">
-        <h1 class="title">GAME OVER</h1>
-        <div id="finalScore" style="font-size: 24px; margin-bottom: 20px;">Score: 0</div>
-        <button class="btn" id="restartBtn">PLAY AGAIN!</button>
-    </div>
-    
-    <canvas id="gameCanvas"></canvas>
-
-    <script>
-        // Game variables
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const startScreen = document.getElementById('startScreen');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const startBtn = document.getElementById('startBtn');
-        const restartBtn = document.getElementById('restartBtn');
-        const scoreDisplay = document.getElementById('scoreDisplay');
-        const finalScoreDisplay = document.getElementById('finalScore');
-        
-        // Set canvas size
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        canvas.willReadFrequently = false;
-        
-        // Game state
-        let gameRunning = false;
-        let score = 0;
-        let highScore = localStorage.getItem('happyBirdHighScore') || 0;
-
-        // SFX
-        var music = new Audio("bgm.mp3");
-        music.loop = true;
-        music.volume = 0.7;
-        var flap = new Audio("flap.wav");
-        flap.volume = 0.6;
-        const musicToggle = document.getElementById('musicToggle');
-
-        let musicMuted = false;
-
-        musicToggle.addEventListener('click', () => {
-        musicMuted = !musicMuted;   
-        music.muted = musicMuted;
-        musicToggle.textContent = musicMuted ? '🔇' : '🔊';
-        });
-        
-        // Bird properties
-        const bird = {
-            x: 100,
-            y: canvas.height / 2,
-            width: 40,
-            height: 30,
-            velocity: 0,
-            gravity: 0.25,
-            jump: -7,
-            color: '#FFD700'
-        };
-        
-        // Pipes
-        let pipes = [];
-        const pipeWidth = 80;
-        const pipeGap = 200;
-        const pipeSpeed = 3 + Math.floor(score / 5) * 0.5;
-        let pipeTimer = 0;
-        const pipeInterval = 1500; // milliseconds
-        
-        // Clouds
-        let clouds = [];
-        const cloudCount = 5;
-        
-        // Initialize clouds
-        function initClouds() {
-            clouds = [];
-            for (let i = 0; i < cloudCount; i++) {
-                clouds.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height * 0.5,
-                    width: 100 + Math.random() * 100,
-                    height: 60 + Math.random() * 40,
-                    speed: 0.5 + Math.random() * 1
-                });
-            }
-        }
-        
-        // Draw bird
-        function drawBird() {
-            ctx.fillStyle = bird.color;
-            
-            // Draw bird body
-            ctx.beginPath();
-            ctx.ellipse(bird.x, bird.y, bird.width / 2, bird.height / 2, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw bird eye
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            ctx.arc(bird.x + 10, bird.y - 5, 5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.fillStyle = 'black';
-            ctx.beginPath();
-            ctx.arc(bird.x + 10, bird.y - 5, 2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw bird beak
-            ctx.fillStyle = '#FF8C00';
-            ctx.beginPath();
-            ctx.moveTo(bird.x + bird.width / 2, bird.y);
-            ctx.lineTo(bird.x + bird.width / 2 + 20, bird.y - 5);
-            ctx.lineTo(bird.x + bird.width / 2 + 20, bird.y + 5);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Draw bird wings (flapping animation)
-            const wingY = bird.y + Math.sin(Date.now() / 100) * 5;
-            ctx.fillStyle = '#FFC800';
-            ctx.beginPath();
-            ctx.ellipse(bird.x - 10, wingY, 15, 10, Math.PI / 4, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // Draw pipes
-        function drawPipes() {
-            ctx.fillStyle = '#2ECC71';
-            pipes.forEach(pipe => {
-                // Combine rect drawing operations
-                ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
-                ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
-            });
-            
-            // Draw all edges at once
-            ctx.fillStyle = '#27AE60';
-            pipes.forEach(pipe => {
-                ctx.fillRect(pipe.x - 5, pipe.topHeight - 20, pipeWidth + 10, 20);
-                ctx.fillRect(pipe.x - 5, pipe.bottomY, pipeWidth + 10, 20);
-            });
-        }
-
-        // clean up pipes
-        function cleanPipes() {
-            if (pipes.length > 5) {
-                pipes = pipes.slice(-5); // Keep only last 5 pipes
-            }
-        }
-
-        function updateGame(delta) {
-            // Normalize delta to seconds
-            const deltaSeconds = delta / 1000;
-            
-            // Update bird physics
-            bird.velocity += bird.gravity * deltaSeconds;
-            bird.y += bird.velocity * deltaSeconds;
-            
-            // Update pipes with frame-rate independent movement
-            pipes.forEach(pipe => {
-                pipe.x -= pipeSpeed * deltaSeconds;
-            });
-            
-            // Update clouds
-            clouds.forEach(cloud => {
-                cloud.x -= cloud.speed * deltaSeconds;
-            });
-            
-            // Add new pipes (with time-based interval)
-            pipeTimer -= delta;
-            if (pipeTimer <= 0) {
-                addNewPipe();
-                pipeTimer = pipeInterval;
-            }
-            
-            // Check collisions
-            if (checkCollisions()) {
-                gameOver();
-            }
-            cleanPipes();
-        }
-
-        function renderGame(alpha = 0) {
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw background
-            ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw game elements
-            drawClouds();
-            drawPipes();
-            drawBird();
-        }
-        
-        // Draw clouds
-        function drawClouds() {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            clouds.forEach(cloud => {
-            ctx.beginPath();
-            // Draw all cloud parts in one path
-            ctx.arc(cloud.x, cloud.y, cloud.height / 2, 0, Math.PI * 2);
-            ctx.arc(cloud.x + cloud.width / 3, cloud.y - cloud.height / 4, cloud.height / 2.5, 0, Math.PI * 2);
-            ctx.arc(cloud.x + cloud.width / 1.5, cloud.y, cloud.height / 2.5, 0, Math.PI * 2);
-            ctx.arc(cloud.x + cloud.width / 3, cloud.y + cloud.height / 4, cloud.height / 3, 0, Math.PI * 2);
-            ctx.fill();
-        });
-        }
-        
-        // Update pipes
-        function updatePipes(timestamp) {
-            // Add new pipes
-            if (pipeTimer <= 0) {
-                const topHeight = 100 + Math.random() * (canvas.height / 2 - 200);
-                pipes.push({
-                    x: canvas.width,
-                    topHeight: topHeight,
-                    bottomY: topHeight + pipeGap,
-                    passed: false
-                });
-                pipeTimer = pipeInterval;
-            } else {
-                pipeTimer -= 16; // Assuming 60fps
-            }
-            
-            // Move pipes
-            pipes = pipes.filter(pipe => {
-                pipe.x -= pipeSpeed;
-                
-                // Check if bird passed the pipe
-                if (!pipe.passed && pipe.x + pipeWidth < bird.x) {
-                    pipe.passed = true;
-                    score++;
-                    scoreDisplay.textContent = score;
-                }
-                
-                return pipe.x + pipeWidth > 0;
-            });
-        }
-        
-        // Update clouds
-        function updateClouds() {
-            clouds.forEach(cloud => {
-                cloud.x -= cloud.speed;
-                if (cloud.x + cloud.width < 0) {
-                    cloud.x = canvas.width;
-                    cloud.y = Math.random() * canvas.height * 0.5;
-                }
-            });
-        }
-        
-        // Check collisions
-        function checkCollisions() {
-            // Ground collision
-            if (bird.y + bird.height / 2 > canvas.height) {
-                return true;
-            }
-            
-            // Ceiling collision
-            if (bird.y - bird.height / 2 < 0) {
-                return true;
-            }
-            
-            // Pipe collisions
-            for (const pipe of pipes) {
-                if (
-                    bird.x + bird.width / 2 > pipe.x &&
-                    bird.x - bird.width / 2 < pipe.x + pipeWidth &&
-                    (bird.y - bird.height / 2 < pipe.topHeight ||
-                     bird.y + bird.height / 2 > pipe.bottomY)
-                ) {
-                    return true;
-                }
-            }
-            
-            return false;
-        }
-        
-   
-        // Game loop
-        function gameLoop(timestamp = 0) {
-            if (!gameRunning) return;
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw background
-            ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Update and draw game elements
-            updateClouds();
-            drawClouds();
-            
-            updatePipes(timestamp);
-            drawPipes();
-            
-            // Update bird
-            bird.velocity += bird.gravity;
-            bird.y += bird.velocity;
-            
-            // Draw bird
-            drawBird();
-            
-            // Check collisions
-            if (checkCollisions()) {
-                gameOver();
-                return;
-            }
-            
-            // Continue game loop
-            requestAnimationFrame(gameLoop);
-        }
-        
-        // Start game
-        function startGame() {
-            // Reset game state
-            score = 0;
-            scoreDisplay.textContent = score;
-            pipes = [];
-            pipeTimer = pipeInterval;
-            
-            // Reset bird
-            bird.y = canvas.height / 2;
-            bird.velocity = 0;
-            
-            // Initialize clouds
-            initClouds();
-            
-            // Hide start screen
-            startScreen.style.display = 'none';
-            gameOverScreen.style.display = 'none';
-            
-            // Start game
-            gameRunning = true;
-            requestAnimationFrame(gameLoop);
-            music.play()
-        }
-        
-        // Game over
-        function gameOver() {
-            gameRunning = false;
-            
-            // Update high score
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('happyBirdHighScore', highScore);
-            }
-            
-            // Show game over screen
-            finalScoreDisplay.textContent = `Score: ${score} | High Score: ${highScore}`;
-            gameOverScreen.style.display = 'flex';
-        }
-        
-        // Event listeners
-        startBtn.addEventListener('click', startGame);
-        restartBtn.addEventListener('click', startGame);
-        
-        // Jump on click/tap
-        canvas.addEventListener('click', () => {
-            if (gameRunning) {
-                bird.velocity = bird.jump;
-                
-                // Play flap sound
-                flap.play();
-            }
-        });
-        
-        // Keyboard controls
-        document.addEventListener('keydown', (e) => {
-            if ((e.code === 'Space' || e.key === 'ArrowUp') && gameRunning) {
-                bird.velocity = bird.jump;
-                
-                // Play flap sound
-                flap.play();
-            }
-        });
-    
-        // Detect mobile devices
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-        // Add this touch handler for immediate response
-        document.body.addEventListener('touchstart', (e) => {
-            handleJump();
-        }, { passive: true });
-
-    </script>
-</body>
-</html>
