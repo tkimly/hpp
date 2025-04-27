@@ -592,9 +592,8 @@
 
         // Add this touch handler for immediate response
         document.body.addEventListener('touchend', (e) => {
-            e.preventDefault();
             handleJump();
-        }, { passive: false });
+        }, { passive: true });
 
     </script>
 </body>
