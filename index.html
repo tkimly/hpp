@@ -591,7 +591,7 @@
         initAudio();
 
         // Add this touch handler for immediate response
-        document.body.addEventListener('touchend', (e) => {
+        document.body.addEventListener('touchstart', (e) => {
             handleJump();
         }, { passive: true });
 
