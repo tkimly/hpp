@@ -517,37 +517,7 @@
                 flap.play();
             }
         });
-        
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            // Reset bird position
-            if (gameRunning) {
-                bird.y = canvas.height / 2;
-            }
-        });
-
-        let lastTapTime = 0;
-        const doubleTapDelay = 300;
-
-        function handleJump() {
-        const now = Date.now();
-        if (now - lastTapTime < doubleTapDelay) return; // Debounce
-        lastTapTime = now;
-        
-        if (gameRunning) {
-            bird.velocity = bird.jump;
-            if (flap.paused) {
-            flap.currentTime = 0;
-            flap.play();
-            } else {
-            flap.cloneNode(true).play(); // Avoid audio clipping
-            }
-        }
-        }
-
+    
         // Detect mobile devices
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
