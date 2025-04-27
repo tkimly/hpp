@@ -117,26 +117,26 @@
 </head>
 
 <body>
-  <button id="musicToggle" class="btn absolute top-4 right-4 z-20 text-4xl">🔊</button>
-  <div class="score" id="scoreDisplay">0</div>
-
-  <div id="startScreen">
+    <div id="startScreen" class="fixed top-0 left-0 w-full h-full flex flex-col justify-center items-center bg-black/50 z-20">
     <h1 class="title">HAPPY BIRD</h1>
     <h2 class="author">made by pu kim</h2>
-    <button class="btn" id="startBtn">START GAME</button>
-    <div class="instructions">
+    <button class="btn mt-8" id="startBtn">START GAME</button>
+    <div class="instructions mt-4">
       Tap or click to make the bird fly<br>
       Avoid the pipes and try to get the highest score!
     </div>
   </div>
 
-  <div id="gameOverScreen">
+  <div id="gameOverScreen" class="fixed top-0 left-0 w-full h-full flex flex-col justify-center items-center bg-black/50 z-20 hidden">
     <h1 class="title">GAME OVER</h1>
-    <div id="finalScore" style="font-size: 24px; margin-bottom: 20px;">Score: 0</div>
+    <div id="finalScore" class="text-2xl mb-6">Score: 0</div>
     <button class="btn" id="restartBtn">PLAY AGAIN!</button>
   </div>
 
-  <canvas id="gameCanvas"></canvas>
+  <button id="musicToggle" class="btn fixed top-4 right-4 z-30 text-4xl">🔊</button>
+  <div id="scoreDisplay" class="score">0</div>
+
+  <canvas id="gameCanvas" class="fixed top-0 left-0 w-full h-full z-10"></canvas>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
