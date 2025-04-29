@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Happy Bird</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -15,15 +15,11 @@
             font-family: 'Press Start 2P', cursive;
             background-color: #87CEEB;
             touch-action: manipulation;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
         }
         
         #gameCanvas {
             display: block;
             background-color: #87CEEB;
-            touch-action: none;
         }
         
         #startScreen, #gameOverScreen {
@@ -57,7 +53,6 @@
             border-radius: 10px;
             box-shadow: 0 4px 0 #8B4513;
             transition: all 0.1s;
-            -webkit-tap-highlight-color: transparent;
         }
         
         .btn:hover {
@@ -106,34 +101,34 @@
         }
 
         @media (max-width: 768px) {
-            .title {
-                font-size: 32px;
-                text-shadow: 3px 3px 0 #8B4513;
-            }
-            
-            .btn {
-                padding: 12px 24px;
-                font-size: 14px;
-            }
-            
-            .instructions {
-                font-size: 12px;
-                padding: 0 20px;
-            }
-            
-            #musicToggle {
-                padding: 8px;
-                font-size: 24px;
-            }
+        .title {
+            font-size: 32px;
+            text-shadow: 3px 3px 0 #8B4513;
         }
+        
+        .btn {
+            padding: 12px 24px;
+            font-size: 14px;
+        }
+        
+        .instructions {
+            font-size: 12px;
+            padding: 0 20px;
+        }
+        
+        #musicToggle {
+            padding: 8px;
+            font-size: 24px;
+        }
+    }
 
-        /* Prevent touch highlighting */
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
+    /* Prevent touch highlighting */
+    * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
     </style>
 </head>
 <body>
@@ -170,23 +165,15 @@
         const finalScoreDisplay = document.getElementById('finalScore');
         
         // Set canvas size
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
         canvas.willReadFrequently = false;
         
         // Game state
         let gameRunning = false;
         let score = 0;
         let highScore = localStorage.getItem('happyBirdHighScore') || 0;
-        let lastFrameTime = 0;
-        let gameStartTime = 0;
 
-        // Detect mobile devices
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
         // SFX
         var music = new Audio("bgm.mp3");
         music.loop = true;
@@ -198,28 +185,28 @@
         let musicMuted = false;
 
         musicToggle.addEventListener('click', () => {
-            musicMuted = !musicMuted;
-            music.muted = musicMuted;
-            musicToggle.textContent = musicMuted ? '🔇' : '🔊';
+        musicMuted = !musicMuted;   
+        music.muted = musicMuted;
+        musicToggle.textContent = musicMuted ? '🔇' : '🔊';
         });
         
         // Bird properties
         const bird = {
-            x: isMobile ? 150 : 100, // More space on mobile
+            x: 100,
             y: canvas.height / 2,
-            width: isMobile ? 50 : 40, // Larger hitbox on mobile
-            height: isMobile ? 35 : 30,
+            width: 40,
+            height: 30,
             velocity: 0,
-            gravity: isMobile ? 0.2 : 0.25, // Gentler physics on mobile
-            jump: isMobile ? -8 : -7, // Stronger jump on mobile
+            gravity: 0.25,
+            jump: -7,
             color: '#FFD700'
         };
         
         // Pipes
         let pipes = [];
-        const pipeWidth = isMobile ? 70 : 80; // Slightly narrower on mobile
-        const pipeGap = isMobile ? 220 : 200; // More space on mobile
-        let pipeSpeed = isMobile ? 2.5 : 3; // Slower on mobile
+        const pipeWidth = 80;
+        const pipeGap = 200;
+        const pipeSpeed = 3 + Math.floor(score / 5) * 0.5;
         let pipeTimer = 0;
         const pipeInterval = 1500; // milliseconds
         
@@ -352,29 +339,32 @@
         function drawClouds() {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             clouds.forEach(cloud => {
-                ctx.beginPath();
-                // Draw all cloud parts in one path
-                ctx.arc(cloud.x, cloud.y, cloud.height / 2, 0, Math.PI * 2);
-                ctx.arc(cloud.x + cloud.width / 3, cloud.y - cloud.height / 4, cloud.height / 2.5, 0, Math.PI * 2);
-                ctx.arc(cloud.x + cloud.width / 1.5, cloud.y, cloud.height / 2.5, 0, Math.PI * 2);
-                ctx.arc(cloud.x + cloud.width / 3, cloud.y + cloud.height / 4, cloud.height / 3, 0, Math.PI * 2);
-                ctx.fill();
-            });
-        }
-        
-        // Add new pipe
-        function addNewPipe() {
-            const topHeight = 100 + Math.random() * (canvas.height / 2 - 200);
-            pipes.push({
-                x: canvas.width,
-                topHeight: topHeight,
-                bottomY: topHeight + pipeGap,
-                passed: false
-            });
+            ctx.beginPath();
+            // Draw all cloud parts in one path
+            ctx.arc(cloud.x, cloud.y, cloud.height / 2, 0, Math.PI * 2);
+            ctx.arc(cloud.x + cloud.width / 3, cloud.y - cloud.height / 4, cloud.height / 2.5, 0, Math.PI * 2);
+            ctx.arc(cloud.x + cloud.width / 1.5, cloud.y, cloud.height / 2.5, 0, Math.PI * 2);
+            ctx.arc(cloud.x + cloud.width / 3, cloud.y + cloud.height / 4, cloud.height / 3, 0, Math.PI * 2);
+            ctx.fill();
+        });
         }
         
         // Update pipes
         function updatePipes(timestamp) {
+            // Add new pipes
+            if (pipeTimer <= 0) {
+                const topHeight = 100 + Math.random() * (canvas.height / 2 - 200);
+                pipes.push({
+                    x: canvas.width,
+                    topHeight: topHeight,
+                    bottomY: topHeight + pipeGap,
+                    passed: false
+                });
+                pipeTimer = pipeInterval;
+            } else {
+                pipeTimer -= 16; // Assuming 60fps
+            }
+            
             // Move pipes
             pipes = pipes.filter(pipe => {
                 pipe.x -= pipeSpeed;
@@ -384,9 +374,6 @@
                     pipe.passed = true;
                     score++;
                     scoreDisplay.textContent = score;
-                    
-                    // Gradually increase difficulty
-                    pipeSpeed = (isMobile ? 2.5 : 3) + Math.floor(score / 5) * 0.5;
                 }
                 
                 return pipe.x + pipeWidth > 0;
@@ -431,17 +418,39 @@
             return false;
         }
         
+   
         // Game loop
-        function gameLoop(timestamp) {
+        function gameLoop(timestamp = 0) {
             if (!gameRunning) return;
             
-            if (!gameStartTime) gameStartTime = timestamp;
-            const deltaTime = timestamp - lastFrameTime;
-            lastFrameTime = timestamp;
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            updateGame(deltaTime);
-            renderGame();
+            // Draw background
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
+            // Update and draw game elements
+            updateClouds();
+            drawClouds();
+            
+            updatePipes(timestamp);
+            drawPipes();
+            
+            // Update bird
+            bird.velocity += bird.gravity;
+            bird.y += bird.velocity;
+            
+            // Draw bird
+            drawBird();
+            
+            // Check collisions
+            if (checkCollisions()) {
+                gameOver();
+                return;
+            }
+            
+            // Continue game loop
             requestAnimationFrame(gameLoop);
         }
         
@@ -452,7 +461,6 @@
             scoreDisplay.textContent = score;
             pipes = [];
             pipeTimer = pipeInterval;
-            pipeSpeed = isMobile ? 2.5 : 3;
             
             // Reset bird
             bird.y = canvas.height / 2;
@@ -467,15 +475,8 @@
             
             // Start game
             gameRunning = true;
-            gameStartTime = 0;
-            lastFrameTime = 0;
             requestAnimationFrame(gameLoop);
-            
-            // Play music (with user gesture)
-            if (music.paused) {
-                music.currentTime = 0;
-                music.play().catch(e => console.log('Audio play failed:', e));
-            }
+            music.play()
         }
         
         // Game over
@@ -491,59 +492,74 @@
             // Show game over screen
             finalScoreDisplay.textContent = `Score: ${score} | High Score: ${highScore}`;
             gameOverScreen.style.display = 'flex';
-            
-            // Pause music
-            music.pause();
         }
         
         // Event listeners
         startBtn.addEventListener('click', startGame);
         restartBtn.addEventListener('click', startGame);
         
-        // Jump function
-        function handleJump() {
+        // Jump on click/tap
+        canvas.addEventListener('click', () => {
             if (gameRunning) {
                 bird.velocity = bird.jump;
                 
                 // Play flap sound
-                if (flap.paused) {
-                    flap.currentTime = 0;
-                    flap.play().catch(e => console.log('Flap sound failed:', e));
-                } else {
-                    // Clone the audio to allow overlapping sounds
-                    const flapClone = flap.cloneNode();
-                    flapClone.currentTime = 0;
-                    flapClone.play().catch(e => console.log('Flap sound failed:', e));
-                }
+                flap.play();
             }
-        }
-        
-        // Click/tap controls
-        canvas.addEventListener('click', handleJump);
-        
-        // Touch controls (with preventDefault to avoid delays)
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            handleJump();
-        }, { passive: false });
+        });
         
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
             if ((e.code === 'Space' || e.key === 'ArrowUp') && gameRunning) {
-                handleJump();
+                bird.velocity = bird.jump;
+                
+                // Play flap sound
+                flap.play();
             }
         });
         
         // Handle window resize
         window.addEventListener('resize', () => {
-            resizeCanvas();
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
             
             // Reset bird position
             if (gameRunning) {
                 bird.y = canvas.height / 2;
             }
         });
+
+        let lastTapTime = 0;
+        const doubleTapDelay = 300;
+
+        function handleJump() {
+        const now = Date.now();
+        if (now - lastTapTime < doubleTapDelay) return; // Debounce
+        lastTapTime = now;
         
+        if (gameRunning) {
+            bird.velocity = bird.jump;
+            if (flap.paused) {
+            flap.currentTime = 0;
+            flap.play();
+            } else {
+            flap.cloneNode(true).play(); // Avoid audio clipping
+            }
+        }
+        }
+
+        // Detect mobile devices
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // Adjust game parameters for mobile
+        if (isMobile) {
+            bird.width = 50; // Larger hitbox
+            bird.height = 35;
+            pipeGap = 220; // More space between pipes
+            pipeSpeed = 2.5; // Slightly slower
+            bird.gravity = 0.2; // Gentler physics
+        }
+
         // Add visibility change handler
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
@@ -551,14 +567,13 @@
                     gameRunning = false;
                     music.pause();
                 }
-            } else if (gameOverScreen.style.display !== 'flex') {
+            } else if (!gameOverScreen.style.display === 'flex') {
                 gameRunning = true;
-                music.play().catch(e => console.log('Music resume failed:', e));
-                lastFrameTime = 0;
+                music.play();
                 requestAnimationFrame(gameLoop);
             }
         });
-        
+
         // Optimize audio for mobile
         function initAudio() {
             music.preload = 'auto';
@@ -569,32 +584,18 @@
             // iOS requires this to enable audio
             document.addEventListener('touchstart', () => {
                 if (music.paused) {
-                    music.play().then(() => music.pause()).catch(e => {});
+                    music.play().then(() => music.pause());
                 }
             }, { once: true });
         }
         initAudio();
-        
-        // Prevent scrolling on touch devices
-        document.body.addEventListener('touchmove', (e) => {
-            if (gameRunning) {
-                e.preventDefault();
-            }
+
+        // Add this touch handler for immediate response
+        document.body.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleJump();
         }, { passive: false });
-        
-        // Add vibration feedback on mobile (if supported)
-        function vibrate() {
-            if (isMobile && navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-        }
-        
-        // Modify jump handler to include vibration
-        const originalHandleJump = handleJump;
-        handleJump = function() {
-            originalHandleJump();
-            vibrate();
-        };
+
     </script>
 </body>
 </html>
